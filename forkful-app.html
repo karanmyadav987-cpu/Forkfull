@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forkful - Premium Food Delivery & AI Culinary Guide</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- React & ReactDOM CDN (Correct UMD builds) -->
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
+    <script crossorigin
+        src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+    <!-- Babel Standalone -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --primary: #ff5200;
+            --primary-hover: #e04800;
+            --primary-light: rgba(255, 82, 0, 0.1);
+            --gradient-primary: linear-gradient(135deg, #ff5200 0%, #ff7e33 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.12);
+            --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-main);
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(107, 114, 128, 0.8);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-6px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 82, 0, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 12px rgba(255, 82, 0, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 82, 0, 0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.35s ease-out forwards;
+        }
+
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .glass-card {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Responsive Grid fixes */
+        .restaurant-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        @media (max-width: 640px) {
+            .restaurant-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const RESTAURANTS_DATA = [
+            {
+                id: 1,
+                name: 'Spice Manor',
+                rating: 4.8,
+                reviewsCount: 340,
+                deliveryTime: '25-35 mins',
+                cuisine: 'North Indian & Mughlai',
+                tag: 'Bestseller',
+                image: '🍛',
+                bannerColor: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%)',
+                menu: [
+                    { id: 101, name: 'Butter Chicken Special', price: 320, description: 'Tender chicken simmered in rich, velvety tomato butter gravy', image: '🍗', tag: 'Must Try' },
+                    { id: 102, name: 'Paneer Tikka Masala', price: 280, description: 'Char-grilled cottage cheese cubes in spiced onion tomato gravy', image: '🧀', tag: 'Veg' },
+                    { id: 103, name: 'Hyderabadi Dum Biryani', price: 350, description: 'Fragrant long-grain basmati rice cooked with whole spices & tender meat', image: '🍚', tag: 'Chef Choice' },
+                ]
+            },
+            {
+                id: 2,
+                name: 'Pizza Paradise',
+                rating: 4.6,
+                reviewsCount: 512,
+                deliveryTime: '20-30 mins',
+                cuisine: 'Artisanal Italian Pizza',
+                tag: 'Super Fast',
+                image: '🍕',
+                bannerColor: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
+                menu: [
+                    { id: 201, name: 'Classic Margherita', price: 280, description: 'San Marzano tomatoes, fresh mozzarella, and aromatic basil', image: '🍕', tag: 'Veg' },
+                    { id: 202, name: 'Pepperoni Supreme', price: 350, description: 'Loaded with double spicy pepperoni and extra mozzarella', image: '🍕', tag: 'Popular' },
+                    { id: 203, name: 'Garlic Cheese Knots', price: 150, description: 'Freshly baked buttery garlic dough knots with herbs', image: '🥖', tag: 'Side' },
+                ]
+            },
+            {
+                id: 3,
+                name: 'Sushi Dreams',
+                rating: 4.9,
+                reviewsCount: 289,
+                deliveryTime: '30-40 mins',
+                cuisine: 'Japanese & Asian Fusion',
+                tag: 'Top Rated',
+                image: '🍣',
+                bannerColor: 'linear-gradient(135deg, #ff8177 0%, #ff0844 100%)',
+                menu: [
+                    { id: 301, name: 'Dragon Roll', price: 450, description: 'Spicy tuna, cucumber topped with sliced avocado & unagi sauce', image: '🍣', tag: 'Chef Choice' },
+                    { id: 302, name: 'Salmon Sashimi Platter', price: 520, description: 'Fresh premium Norwegian salmon sliced served with wasabi', image: '🐟', tag: 'Fresh' },
+                    { id: 303, name: 'Authentic Miso Soup', price: 180, description: 'Traditional dashi broth with tofu, seaweed & scallions', image: '🍲', tag: 'Soup' },
+                ]
+            },
+            {
+                id: 4,
+                name: 'Burger Bliss',
+                rating: 4.5,
+                reviewsCount: 420,
+                deliveryTime: '15-25 mins',
+                cuisine: 'American Gourmet Burgers',
+                tag: 'Express',
+                image: '🍔',
+                bannerColor: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
+                menu: [
+                    { id: 401, name: 'Smokey Bacon Cheeseburger', price: 250, description: 'Angus beef patty, crispy bacon, cheddar & signature house sauce', image: '🍔', tag: 'Top Seller' },
+                    { id: 402, name: 'Truffle Parmesan Fries', price: 120, description: 'Golden crunchy fries tossed in truffle oil & aged parmesan', image: '🍟', tag: 'Crispy' },
+                    { id: 403, name: 'Triple Chocolate Shake', price: 180, description: 'Thick creamy milkshake topped with whipped cream & fudge', image: '🥤', tag: 'Sweet' },
+                ]
+            },
+            {
+                id: 5,
+                name: 'Green Bowl',
+                rating: 4.7,
+                reviewsCount: 198,
+                deliveryTime: '20-30 mins',
+                cuisine: 'Healthy, Organic & Vegan',
+                tag: 'Organic',
+                image: '🥗',
+                bannerColor: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+                menu: [
+                    { id: 501, name: 'Superfood Buddha Bowl', price: 380, description: 'Organic quinoa, roasted chickpeas, avocado & tahini dressing', image: '🥗', tag: 'Vegan' },
+                    { id: 502, name: 'Acai Berry Smoothie Bowl', price: 280, description: 'Blended acai topped with chia seeds, granola & fresh berries', image: '🍓', tag: 'Healthy' },
+                    { id: 503, name: 'Grilled Chicken Avocado Salad', price: 350, description: 'Tender chicken breast, mixed greens & lemon vinaigrette', image: '🥬', tag: 'Keto' },
+                ]
+            },
+        ];
+
+        const getAIRecommendation = (input) => {
+            const lower = input.toLowerCase();
+            if (lower.includes('spicy') || lower.includes('hot')) {
+                return '🌶️ Craving heat? I recommend the **Butter Chicken Special** from Spice Manor or the spicy **Dragon Roll** from Sushi Dreams!';
+            } else if (lower.includes('pizza') || lower.includes('italian')) {
+                return '🍕 Craving Italian? Pizza Paradise serves incredible pizzas! Try the **Pepperoni Supreme** or classic **Margherita**.';
+            } else if (lower.includes('healthy') || lower.includes('diet') || lower.includes('salad') || lower.includes('vegan')) {
+                return '🥗 Feeling health-conscious? Green Bowl is your spot! Check out the **Superfood Buddha Bowl** or **Acai Berry Bowl**.';
+            } else if (lower.includes('sushi') || lower.includes('japanese') || lower.includes('fish')) {
+                return '🍣 Excellent choice! Sushi Dreams is top-rated. The **Dragon Roll** and **Salmon Sashimi Platter** are customer favorites.';
+            } else if (lower.includes('burger') || lower.includes('fast food') || lower.includes('fries')) {
+                return '🍔 Burger Bliss delivers in just 15-25 mins! Grab the **Smokey Bacon Cheeseburger** paired with **Truffle Parmesan Fries**.';
+            } else if (lower.includes('quick') || lower.includes('fast') || lower.includes('hurry')) {
+                return '⚡ In a rush? **Burger Bliss** (15-25 mins) and **Pizza Paradise** (20-30 mins) have the fastest delivery times!';
+            } else if (lower.includes('cheap') || lower.includes('budget') || lower.includes('low price')) {
+                return '💰 Budget friendly? Try **Garlic Cheese Knots** (₹150), **Truffle Fries** (₹120), or **Smokey Cheeseburger** (₹250)!';
+            } else {
+                return '😋 Tell me what you feel like today! Are you in the mood for spicy Indian, artisanal pizza, fresh sushi, juicy burgers, or healthy bowls?';
+            }
+        };
+
+        const ToastNotification = ({ message, type, onClose }) => {
+            if (!message) return null;
+            return (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '24px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: type === 'success' ? '#10b981' : '#3b82f6',
+                    color: '#ffffff',
+                    padding: '12px 24px',
+                    borderRadius: '50px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    animation: 'fadeIn 0.3s ease-out'
+                }}>
+                    <i className={`fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}`}></i>
+                    <span>{message}</span>
+                </div>
+            );
+        };
+
+        const ForkfulApp = () => {
+            const [theme, setTheme] = useState('light');
+            const [user, setUser] = useState({ name: 'Alex Morgan', email: 'alex@forkful.com', avatar: '👤' });
+            const [currentPage, setCurrentPage] = useState('home');
+            const [cart, setCart] = useState([]);
+            const [wishlist, setWishlist] = useState([]);
+            const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [selectedCuisineFilter, setSelectedCuisineFilter] = useState('All');
+            const [activeOrder, setActiveOrder] = useState(null);
+            const [aiChatOpen, setAiChatOpen] = useState(false);
+            const [aiMessages, setAiMessages] = useState([
+                { type: 'ai', text: 'Hi Alex! 👋 I\'m your Forkful AI Culinary Assistant. Tell me what you\'re craving, and I\'ll find the ideal dish!' }
+            ]);
+            const [userInput, setUserInput] = useState('');
+            const [toast, setToast] = useState(null);
+            const aiEndRef = useRef(null);
+
+            const showToast = (message, type = 'success') => {
+                setToast({ message, type });
+                setTimeout(() => setToast(null), 3000);
+            };
+
+            useEffect(() => {
+                if (aiChatOpen) {
+                    aiEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, [aiMessages, aiChatOpen]);
+
+            const toggleTheme = () => {
+                setTheme(prev => prev === 'light' ? 'dark' : 'light');
+            };
+
+            const handleLoginToggle = () => {
+                if (user) {
+                    setUser(null);
+                    setCart([]);
+                    showToast('Logged out successfully', 'info');
+                } else {
+                    setUser({ name: 'Alex Morgan', email: 'alex@forkful.com', avatar: '👤' });
+                    showToast('Welcome back, Alex!', 'success');
+                }
+            };
+
+            const addToCart = (item, restaurant) => {
+                setCart(prevCart => {
+                    const existing = prevCart.find(c => c.id === item.id && c.restaurantId === restaurant.id);
+                    if (existing) {
+                        return prevCart.map(c => c.id === item.id && c.restaurantId === restaurant.id ? { ...c, quantity: c.quantity + 1 } : c);
+                    }
+                    return [...prevCart, { ...item, restaurantId: restaurant.id, restaurantName: restaurant.name, quantity: 1 }];
+                });
+                showToast(`Added ${item.name} to cart!`, 'success');
+            };
+
+            const toggleWishlist = (item) => {
+                if (wishlist.find(w => w.id === item.id)) {
+                    setWishlist(wishlist.filter(w => w.id !== item.id));
+                    showToast(`Removed ${item.name} from wishlist`, 'info');
+                } else {
+                    setWishlist([...wishlist, item]);
+                    showToast(`Saved ${item.name} to wishlist ❤️`, 'success');
+                }
+            };
+
+            const updateCartQuantity = (itemId, quantity) => {
+                if (quantity <= 0) {
+                    setCart(cart.filter(c => c.id !== itemId));
+                } else {
+                    setCart(cart.map(c => c.id === itemId ? { ...c, quantity } : c));
+                }
+            };
+
+            const handleAiMessage = () => {
+                if (!userInput.trim()) return;
+                const userMsg = userInput.trim();
+                setAiMessages(prev => [...prev, { type: 'user', text: userMsg }]);
+                setUserInput('');
+
+                setTimeout(() => {
+                    const reply = getAIRecommendation(userMsg);
+                    setAiMessages(prev => [...prev, { type: 'ai', text: reply }]);
+                }, 400);
+            };
+
+            const handleCheckout = (paymentMethod) => {
+                if (cart.length === 0) return;
+                const orderId = Math.floor(100000 + Math.random() * 900000);
+                const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+                setActiveOrder({
+                    id: orderId,
+                    items: [...cart],
+                    total: totalAmount,
+                    status: 'confirmed',
+                    deliveryTime: '25-35 mins',
+                    paymentMethod,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                });
+                setCart([]);
+                setCurrentPage('tracking');
+                showToast('🎉 Order placed successfully!', 'success');
+            };
+
+            const themeColors = {
+                light: {
+                    bg: '#f8fafc',
+                    cardBg: '#ffffff',
+                    headerBg: 'rgba(255, 255, 255, 0.85)',
+                    text: '#0f172a',
+                    textMuted: '#64748b',
+                    border: '#e2e8f0',
+                    secondary: '#f1f5f9',
+                    accent: '#ff5200',
+                    accentLight: '#fff1ec',
+                },
+                dark: {
+                    bg: '#0f172a',
+                    cardBg: '#1e293b',
+                    headerBg: 'rgba(30, 41, 59, 0.85)',
+                    text: '#f8fafc',
+                    textMuted: '#94a3b8',
+                    border: '#334155',
+                    secondary: '#1e293b',
+                    accent: '#ff6b2b',
+                    accentLight: '#3b1c10',
+                }
+            };
+
+            const colors = themeColors[theme];
+            const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            const filteredRestaurants = RESTAURANTS_DATA.filter(r => {
+                const matchesSearch = r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    r.cuisine.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    r.menu.some(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()));
+                const matchesCuisine = selectedCuisineFilter === 'All' || r.cuisine.toLowerCase().includes(selectedCuisineFilter.toLowerCase());
+                return matchesSearch && matchesCuisine;
+            });
+
+            return (
+                <div style={{ backgroundColor: colors.bg, color: colors.text, minHeight: '100vh', transition: 'var(--transition)' }}>
+                    <ToastNotification message={toast?.message} type={toast?.type} />
+
+                    {/* TOP NAVBAR */}
+                    <header style={{
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 100,
+                        backgroundColor: colors.headerBg,
+                        backdropFilter: 'blur(16px)',
+                        borderBottom: `1px solid ${colors.border}`,
+                        padding: '14px 24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        transition: 'var(--transition)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={() => setCurrentPage('home')}>
+                            <div style={{
+                                width: '42px',
+                                height: '42px',
+                                borderRadius: '12px',
+                                background: 'var(--gradient-primary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#fff',
+                                fontSize: '20px',
+                                boxShadow: '0 4px 12px rgba(255, 82, 0, 0.3)'
+                            }}>
+                                <i className="fas fa-utensils"></i>
+                            </div>
+                            <span style={{ fontSize: '22px', fontWeight: '800', letterSpacing: '-0.5px' }}>
+                                Fork<span style={{ color: colors.accent }}>ful</span>
+                            </span>
+                        </div>
+
+                        {/* NAV ITEMS */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                                onClick={() => setCurrentPage('home')}
+                                style={{
+                                    background: currentPage === 'home' ? colors.accentLight : 'transparent',
+                                    color: currentPage === 'home' ? colors.accent : colors.text,
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                }}
+                            >
+                                <i className="fas fa-compass"></i> Discover
+                            </button>
+
+                            <button
+                                onClick={() => setCurrentPage('wishlist')}
+                                style={{
+                                    background: currentPage === 'wishlist' ? colors.accentLight : 'transparent',
+                                    color: currentPage === 'wishlist' ? colors.accent : colors.text,
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    position: 'relative'
+                                }}
+                            >
+                                <i className="fas fa-heart"></i> Wishlist
+                                {wishlist.length > 0 && (
+                                    <span style={{
+                                        backgroundColor: colors.accent,
+                                        color: '#fff',
+                                        fontSize: '11px',
+                                        borderRadius: '20px',
+                                        padding: '2px 6px',
+                                        fontWeight: '700'
+                                    }}>{wishlist.length}</span>
+                                )}
+                            </button>
+
+                            <button
+                                onClick={() => setCurrentPage('cart')}
+                                style={{
+                                    background: currentPage === 'cart' ? colors.accent : colors.accentLight,
+                                    color: currentPage === 'cart' ? '#ffffff' : colors.accent,
+                                    border: 'none',
+                                    padding: '8px 18px',
+                                    borderRadius: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: '700',
+                                    fontSize: '14px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    transition: 'var(--transition)'
+                                }}
+                            >
+                                <i className="fas fa-shopping-bag"></i> Cart
+                                {cart.length > 0 && (
+                                    <span style={{
+                                        backgroundColor: currentPage === 'cart' ? '#ffffff' : colors.accent,
+                                        color: currentPage === 'cart' ? colors.accent : '#ffffff',
+                                        borderRadius: '20px',
+                                        padding: '2px 8px',
+                                        fontSize: '12px'
+                                    }}>
+                                        {cart.reduce((s, i) => s + i.quantity, 0)}
+                                    </span>
+                                )}
+                            </button>
+
+                            {activeOrder && (
+                                <button
+                                    onClick={() => setCurrentPage('tracking')}
+                                    style={{
+                                        background: currentPage === 'tracking' ? colors.accentLight : 'transparent',
+                                        color: colors.accent,
+                                        border: `1px solid ${colors.accent}`,
+                                        padding: '8px 14px',
+                                        borderRadius: '10px',
+                                        cursor: 'pointer',
+                                        fontWeight: '700',
+                                        fontSize: '13px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    <i className="fas fa-truck-fast"></i> Track Order
+                                </button>
+                            )}
+
+                            {/* THEME TOGGLE */}
+                            <button
+                                onClick={toggleTheme}
+                                title="Toggle Dark/Light Mode"
+                                style={{
+                                    width: '38px',
+                                    height: '38px',
+                                    borderRadius: '10px',
+                                    border: `1px solid ${colors.border}`,
+                                    background: colors.secondary,
+                                    color: colors.text,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '16px',
+                                    marginLeft: '8px'
+                                }}
+                            >
+                                <i className={`fas ${theme === 'light' ? 'fa-moon' : 'fa-sun'}`}></i>
+                            </button>
+
+                            {/* USER PROFILE / LOGIN */}
+                            <button
+                                onClick={handleLoginToggle}
+                                style={{
+                                    background: colors.secondary,
+                                    border: `1px solid ${colors.border}`,
+                                    padding: '6px 14px',
+                                    borderRadius: '10px',
+                                    cursor: 'pointer',
+                                    color: colors.text,
+                                    fontSize: '13px',
+                                    fontWeight: '600',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                }}
+                            >
+                                <i className="fas fa-user-circle"></i>
+                                {user ? user.name.split(' ')[0] : 'Sign In'}
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* MAIN CONTENT AREA */}
+                    <main style={{ maxWidth: '1240px', margin: '0 auto', padding: '24px 20px 80px 20px' }}>
+
+                        {/* 1. HOME PAGE */}
+                        {currentPage === 'home' && (
+                            <div className="animate-fade-in">
+                                {/* HERO BANNER */}
+                                <div style={{
+                                    background: 'linear-gradient(135deg, #ff5200 0%, #ff833b 100%)',
+                                    borderRadius: '24px',
+                                    padding: '48px 36px',
+                                    color: '#ffffff',
+                                    marginBottom: '32px',
+                                    boxShadow: 'var(--shadow-md)',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}>
+                                    <div style={{ maxWidth: '600px', zIndex: 2 }}>
+                                        <div style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            backgroundColor: 'rgba(255,255,255,0.2)',
+                                            padding: '6px 14px',
+                                            borderRadius: '30px',
+                                            fontSize: '13px',
+                                            fontWeight: '700',
+                                            marginBottom: '16px'
+                                        }}>
+                                            <i className="fas fa-bolt"></i> Ultra Fast 20-Min Delivery
+                                        </div>
+                                        <h1 style={{ fontSize: '42px', fontWeight: '800', lineHeight: '1.2', marginBottom: '14px' }}>
+                                            Satisfy Your Cravings, Right to Your Door.
+                                        </h1>
+                                        <p style={{ fontSize: '16px', opacity: 0.95, lineHeight: '1.5' }}>
+                                            Discover top-rated local restaurants, gourmet chefs, and personalized AI food recommendations.
+                                        </p>
+                                    </div>
+                                    <div style={{ fontSize: '100px', display: 'flex', gap: '10px' }} className="animate-float">
+                                        🍔🍕🍣
+                                    </div>
+                                </div>
+
+                                {/* SEARCH & CUISINE FILTERS */}
+                                <div style={{ marginBottom: '32px' }}>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '12px',
+                                        backgroundColor: colors.cardBg,
+                                        padding: '14px 20px',
+                                        borderRadius: '16px',
+                                        border: `1px solid ${colors.border}`,
+                                        boxShadow: 'var(--shadow-sm)',
+                                        marginBottom: '20px'
+                                    }}>
+                                        <i className="fas fa-search" style={{ color: colors.accent, fontSize: '18px' }}></i>
+                                        <input
+                                            type="text"
+                                            placeholder="Search by restaurant, dish, or cuisine (e.g. Biryani, Pizza, Burger)..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            style={{
+                                                flex: 1,
+                                                background: 'transparent',
+                                                border: 'none',
+                                                outline: 'none',
+                                                color: colors.text,
+                                                fontSize: '15px',
+                                                fontWeight: '500'
+                                            }}
+                                        />
+                                        {searchQuery && (
+                                            <button onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer' }}>
+                                                <i className="fas fa-times-circle"></i>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* CUISINE FILTER PILLS */}
+                                    <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px' }}>
+                                        {['All', 'Indian', 'Italian', 'Japanese', 'American', 'Healthy'].map(cuisine => (
+                                            <button
+                                                key={cuisine}
+                                                onClick={() => setSelectedCuisineFilter(cuisine)}
+                                                style={{
+                                                    backgroundColor: selectedCuisineFilter === cuisine ? colors.accent : colors.cardBg,
+                                                    color: selectedCuisineFilter === cuisine ? '#ffffff' : colors.text,
+                                                    border: `1px solid ${selectedCuisineFilter === cuisine ? colors.accent : colors.border}`,
+                                                    padding: '10px 20px',
+                                                    borderRadius: '30px',
+                                                    cursor: 'pointer',
+                                                    fontWeight: '600',
+                                                    fontSize: '14px',
+                                                    whiteSpace: 'nowrap',
+                                                    transition: 'var(--transition)'
+                                                }}
+                                            >
+                                                {cuisine}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* RESTAURANTS SECTION */}
+                                <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '20px', letterSpacing: '-0.3px' }}>
+                                    Featured Restaurants
+                                </h2>
+
+                                <div className="restaurant-grid">
+                                    {filteredRestaurants.map(restaurant => (
+                                        <div
+                                            key={restaurant.id}
+                                            onClick={() => {
+                                                setSelectedRestaurant(restaurant);
+                                                setCurrentPage('restaurant');
+                                            }}
+                                            style={{
+                                                backgroundColor: colors.cardBg,
+                                                borderRadius: '20px',
+                                                overflow: 'hidden',
+                                                border: `1px solid ${colors.border}`,
+                                                boxShadow: 'var(--shadow-sm)',
+                                                cursor: 'pointer',
+                                                transition: 'var(--transition)',
+                                                display: 'flex',
+                                                flexDirection: 'column'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(-6px)';
+                                                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                                            }}
+                                        >
+                                            <div style={{
+                                                height: '140px',
+                                                background: restaurant.bannerColor,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '64px',
+                                                position: 'relative'
+                                            }}>
+                                                <span>{restaurant.image}</span>
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    top: '14px',
+                                                    right: '14px',
+                                                    backgroundColor: 'rgba(0,0,0,0.6)',
+                                                    backdropFilter: 'blur(8px)',
+                                                    color: '#fff',
+                                                    padding: '4px 10px',
+                                                    borderRadius: '20px',
+                                                    fontSize: '12px',
+                                                    fontWeight: '700'
+                                                }}>
+                                                    {restaurant.tag}
+                                                </span>
+                                            </div>
+
+                                            <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                                <div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                                        <h3 style={{ fontSize: '18px', fontWeight: '800' }}>{restaurant.name}</h3>
+                                                        <span style={{
+                                                            backgroundColor: '#10b981',
+                                                            color: '#ffffff',
+                                                            padding: '2px 8px',
+                                                            borderRadius: '8px',
+                                                            fontSize: '13px',
+                                                            fontWeight: '700'
+                                                        }}>
+                                                            ⭐ {restaurant.rating}
+                                                        </span>
+                                                    </div>
+                                                    <p style={{ fontSize: '13px', color: colors.textMuted, marginBottom: '12px', fontWeight: '500' }}>
+                                                        {restaurant.cuisine}
+                                                    </p>
+                                                </div>
+
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    paddingTop: '12px',
+                                                    borderTop: `1px solid ${colors.border}`,
+                                                    fontSize: '13px',
+                                                    color: colors.textMuted,
+                                                    fontWeight: '600'
+                                                }}>
+                                                    <span><i className="far fa-clock" style={{ color: colors.accent, marginRight: '4px' }}></i> {restaurant.deliveryTime}</span>
+                                                    <span style={{ color: colors.accent, fontWeight: '700' }}>View Menu →</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 2. RESTAURANT MENU PAGE */}
+                        {currentPage === 'restaurant' && selectedRestaurant && (
+                            <div className="animate-fade-in">
+                                <button
+                                    onClick={() => setCurrentPage('home')}
+                                    style={{
+                                        backgroundColor: colors.cardBg,
+                                        border: `1px solid ${colors.border}`,
+                                        color: colors.text,
+                                        padding: '10px 18px',
+                                        borderRadius: '12px',
+                                        cursor: 'pointer',
+                                        fontWeight: '600',
+                                        marginBottom: '24px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '8px'
+                                    }}
+                                >
+                                    <i className="fas fa-arrow-left"></i> Back to Restaurants
+                                </button>
+
+                                <div style={{
+                                    backgroundColor: colors.cardBg,
+                                    borderRadius: '24px',
+                                    padding: '32px',
+                                    marginBottom: '32px',
+                                    border: `1px solid ${colors.border}`,
+                                    display: 'flex',
+                                    gap: '24px',
+                                    alignItems: 'center'
+                                }}>
+                                    <div style={{
+                                        width: '100px',
+                                        height: '100px',
+                                        borderRadius: '20px',
+                                        background: selectedRestaurant.bannerColor,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '48px'
+                                    }}>
+                                        {selectedRestaurant.image}
+                                    </div>
+                                    <div>
+                                        <h1 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px' }}>{selectedRestaurant.name}</h1>
+                                        <p style={{ color: colors.textMuted, fontSize: '15px', marginBottom: '12px' }}>{selectedRestaurant.cuisine}</p>
+                                        <div style={{ display: 'flex', gap: '16px', fontSize: '14px', fontWeight: '600' }}>
+                                            <span>⭐ {selectedRestaurant.rating} ({selectedRestaurant.reviewsCount} reviews)</span>
+                                            <span>⏱️ {selectedRestaurant.deliveryTime}</span>
+                                            <span>🏷️ {selectedRestaurant.tag}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '20px' }}>Menu Items</h2>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                                    {selectedRestaurant.menu.map(item => (
+                                        <div
+                                            key={item.id}
+                                            style={{
+                                                backgroundColor: colors.cardBg,
+                                                borderRadius: '16px',
+                                                padding: '20px',
+                                                border: `1px solid ${colors.border}`,
+                                                boxShadow: 'var(--shadow-sm)',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'space-between'
+                                            }}
+                                        >
+                                            <div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                                    <span style={{ fontSize: '40px' }}>{item.image}</span>
+                                                    <button
+                                                        onClick={() => toggleWishlist(item)}
+                                                        style={{
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            color: wishlist.find(w => w.id === item.id) ? '#ef4444' : colors.textMuted,
+                                                            fontSize: '20px',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        <i className={wishlist.find(w => w.id === item.id) ? "fas fa-heart" : "far fa-heart"}></i>
+                                                    </button>
+                                                </div>
+                                                <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '6px' }}>{item.name}</h3>
+                                                <p style={{ fontSize: '13px', color: colors.textMuted, lineHeight: '1.4', marginBottom: '16px' }}>{item.description}</p>
+                                            </div>
+
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: `1px solid ${colors.border}` }}>
+                                                <span style={{ fontSize: '20px', fontWeight: '800', color: colors.accent }}>₹{item.price}</span>
+                                                <button
+                                                    onClick={() => addToCart(item, selectedRestaurant)}
+                                                    style={{
+                                                        backgroundColor: colors.accent,
+                                                        color: '#ffffff',
+                                                        border: 'none',
+                                                        padding: '10px 20px',
+                                                        borderRadius: '10px',
+                                                        fontWeight: '700',
+                                                        fontSize: '14px',
+                                                        cursor: 'pointer',
+                                                        boxShadow: '0 4px 12px rgba(255,82,0,0.2)'
+                                                    }}
+                                                >
+                                                    + Add to Cart
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 3. CART PAGE */}
+                        {currentPage === 'cart' && (
+                            <div className="animate-fade-in" style={{ maxWidth: '960px', margin: '0 auto' }}>
+                                <h1 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '24px' }}>🛒 Your Food Cart</h1>
+
+                                {cart.length === 0 ? (
+                                    <div style={{
+                                        textAlign: 'center',
+                                        padding: '60px 20px',
+                                        backgroundColor: colors.cardBg,
+                                        borderRadius: '24px',
+                                        border: `1px solid ${colors.border}`
+                                    }}>
+                                        <div style={{ fontSize: '64px', marginBottom: '16px' }}>🛍️</div>
+                                        <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px' }}>Your cart is currently empty</h3>
+                                        <p style={{ color: colors.textMuted, marginBottom: '24px' }}>Looks like you haven't added any delicious meals yet.</p>
+                                        <button
+                                            onClick={() => setCurrentPage('home')}
+                                            style={{
+                                                backgroundColor: colors.accent,
+                                                color: '#ffffff',
+                                                border: 'none',
+                                                padding: '12px 28px',
+                                                borderRadius: '12px',
+                                                fontWeight: '700',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            Explore Nearby Dishes
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                            {cart.map((item) => (
+                                                <div
+                                                    key={`${item.restaurantId}-${item.id}`}
+                                                    style={{
+                                                        backgroundColor: colors.cardBg,
+                                                        border: `1px solid ${colors.border}`,
+                                                        borderRadius: '16px',
+                                                        padding: '18px 20px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'space-between'
+                                                    }}
+                                                >
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                        <span style={{ fontSize: '36px' }}>{item.image}</span>
+                                                        <div>
+                                                            <h4 style={{ fontWeight: '700', fontSize: '16px', marginBottom: '2px' }}>{item.name}</h4>
+                                                            <p style={{ fontSize: '12px', color: colors.textMuted, marginBottom: '4px' }}>From {item.restaurantName}</p>
+                                                            <p style={{ fontWeight: '800', color: colors.accent }}>₹{item.price}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <button
+                                                            onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
+                                                            style={{
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                borderRadius: '8px',
+                                                                border: `1px solid ${colors.border}`,
+                                                                backgroundColor: colors.secondary,
+                                                                color: colors.text,
+                                                                cursor: 'pointer',
+                                                                fontWeight: '700'
+                                                            }}
+                                                        >-</button>
+                                                        <span style={{ fontWeight: '700', width: '24px', textAlign: 'center' }}>{item.quantity}</span>
+                                                        <button
+                                                            onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
+                                                            style={{
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                borderRadius: '8px',
+                                                                border: 'none',
+                                                                backgroundColor: colors.accent,
+                                                                color: '#ffffff',
+                                                                cursor: 'pointer',
+                                                                fontWeight: '700'
+                                                            }}
+                                                        >+</button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* BILL SUMMARY */}
+                                        <div style={{
+                                            backgroundColor: colors.cardBg,
+                                            border: `1px solid ${colors.border}`,
+                                            borderRadius: '20px',
+                                            padding: '24px',
+                                            height: 'fit-content'
+                                        }}>
+                                            <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '16px' }}>Order Bill Summary</h3>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px', marginBottom: '16px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', color: colors.textMuted }}>
+                                                    <span>Subtotal</span>
+                                                    <span>₹{cartTotal}</span>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', color: colors.textMuted }}>
+                                                    <span>Delivery Fee</span>
+                                                    <span>₹40</span>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', color: colors.textMuted }}>
+                                                    <span>Taxes & Charges (5%)</span>
+                                                    <span>₹{Math.round(cartTotal * 0.05)}</span>
+                                                </div>
+                                            </div>
+
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                borderTop: `1px solid ${colors.border}`,
+                                                paddingTop: '16px',
+                                                marginBottom: '24px',
+                                                fontSize: '18px',
+                                                fontWeight: '800'
+                                            }}>
+                                                <span>Grand Total</span>
+                                                <span style={{ color: colors.accent }}>₹{cartTotal + 40 + Math.round(cartTotal * 0.05)}</span>
+                                            </div>
+
+                                            <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '12px' }}>Choose Payment Method</h4>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                {['UPI Payment', 'Credit/Debit Card', 'Cash on Delivery'].map((method) => (
+                                                    <button
+                                                        key={method}
+                                                        onClick={() => handleCheckout(method)}
+                                                        style={{
+                                                            width: '100%',
+                                                            backgroundColor: colors.accentLight,
+                                                            color: colors.accent,
+                                                            border: `1px solid ${colors.accent}`,
+                                                            padding: '12px',
+                                                            borderRadius: '10px',
+                                                            fontWeight: '700',
+                                                            cursor: 'pointer',
+                                                            fontSize: '14px'
+                                                        }}
+                                                    >
+                                                        Pay via {method}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* 4. TRACKING PAGE */}
+                        {currentPage === 'tracking' && activeOrder && (
+                            <div className="animate-fade-in" style={{ maxWidth: '640px', margin: '0 auto' }}>
+                                <div style={{
+                                    backgroundColor: colors.cardBg,
+                                    borderRadius: '24px',
+                                    padding: '32px',
+                                    border: `1px solid ${colors.border}`,
+                                    boxShadow: 'var(--shadow-md)'
+                                }}>
+                                    <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+                                        <div style={{
+                                            width: '64px',
+                                            height: '64px',
+                                            borderRadius: '50%',
+                                            backgroundColor: colors.accentLight,
+                                            color: colors.accent,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '28px',
+                                            margin: '0 auto 12px'
+                                        }}>
+                                            <i className="fas fa-check"></i>
+                                        </div>
+                                        <h1 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '4px' }}>Order Confirmed!</h1>
+                                        <p style={{ color: colors.textMuted, fontSize: '14px' }}>Order ID: #{activeOrder.id} • {activeOrder.timestamp}</p>
+                                    </div>
+
+                                    {/* TRACKING TIMELINE */}
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        marginBottom: '32px',
+                                        position: 'relative'
+                                    }}>
+                                        {[
+                                            { title: 'Order Placed', icon: 'fa-file-invoice', active: true },
+                                            { title: 'Preparing', icon: 'fa-kitchen-set', active: true },
+                                            { title: 'On the Way', icon: 'fa-motorcycle', active: false },
+                                            { title: 'Delivered', icon: 'fa-house-flag', active: false }
+                                        ].map((step, idx) => (
+                                            <div key={idx} style={{ textAlign: 'center', zIndex: 2 }}>
+                                                <div style={{
+                                                    width: '44px',
+                                                    height: '44px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: step.active ? colors.accent : colors.secondary,
+                                                    color: step.active ? '#ffffff' : colors.textMuted,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '16px',
+                                                    margin: '0 auto 8px'
+                                                }}>
+                                                    <i className={`fas ${step.icon}`}></i>
+                                                </div>
+                                                <span style={{ fontSize: '12px', fontWeight: '600', color: step.active ? colors.text : colors.textMuted }}>
+                                                    {step.title}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div style={{ backgroundColor: colors.secondary, padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px' }}>
+                                            <span style={{ color: colors.textMuted }}>Estimated Delivery Time:</span>
+                                            <span style={{ fontWeight: '700' }}>{activeOrder.deliveryTime}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                                            <span style={{ color: colors.textMuted }}>Payment Mode:</span>
+                                            <span style={{ fontWeight: '700' }}>{activeOrder.paymentMethod}</span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => setCurrentPage('home')}
+                                        style={{
+                                            width: '100%',
+                                            backgroundColor: colors.accent,
+                                            color: '#ffffff',
+                                            border: 'none',
+                                            padding: '12px',
+                                            borderRadius: '12px',
+                                            fontWeight: '700',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Back to Discover
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 5. WISHLIST PAGE */}
+                        {currentPage === 'wishlist' && (
+                            <div className="animate-fade-in">
+                                <h1 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '24px' }}>❤️ Saved Wishlist</h1>
+
+                                {wishlist.length === 0 ? (
+                                    <div style={{
+                                        textAlign: 'center',
+                                        padding: '60px 20px',
+                                        backgroundColor: colors.cardBg,
+                                        borderRadius: '24px',
+                                        border: `1px solid ${colors.border}`
+                                    }}>
+                                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🤍</div>
+                                        <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px' }}>Your Wishlist is Empty</h3>
+                                        <p style={{ color: colors.textMuted, marginBottom: '20px' }}>Tap the heart icon on any dish to save it here for later.</p>
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                                        {wishlist.map(item => (
+                                            <div
+                                                key={item.id}
+                                                style={{
+                                                    backgroundColor: colors.cardBg,
+                                                    borderRadius: '16px',
+                                                    padding: '20px',
+                                                    border: `1px solid ${colors.border}`
+                                                }}
+                                            >
+                                                <div style={{ fontSize: '48px', marginBottom: '12px' }}>{item.image}</div>
+                                                <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>{item.name}</h3>
+                                                <p style={{ fontSize: '13px', color: colors.textMuted, marginBottom: '16px' }}>{item.description}</p>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <span style={{ fontSize: '18px', fontWeight: '800', color: colors.accent }}>₹{item.price}</span>
+                                                    <button
+                                                        onClick={() => toggleWishlist(item)}
+                                                        style={{
+                                                            backgroundColor: colors.secondary,
+                                                            color: colors.text,
+                                                            border: `1px solid ${colors.border}`,
+                                                            padding: '6px 12px',
+                                                            borderRadius: '8px',
+                                                            cursor: 'pointer',
+                                                            fontSize: '13px',
+                                                            fontWeight: '600'
+                                                        }}
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+
+                    {/* AI ASSISTANT FLOATING CHAT */}
+                    <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 200 }}>
+                        {!aiChatOpen ? (
+                            <button
+                                onClick={() => setAiChatOpen(true)}
+                                style={{
+                                    width: '60px',
+                                    height: '60px',
+                                    borderRadius: '50%',
+                                    backgroundColor: colors.accent,
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    fontSize: '26px',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 8px 24px rgba(255, 82, 0, 0.4)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    animation: 'pulseGlow 2s infinite'
+                                }}
+                            >
+                                🤖
+                            </button>
+                        ) : (
+                            <div style={{
+                                width: '380px',
+                                height: '520px',
+                                backgroundColor: colors.cardBg,
+                                borderRadius: '20px',
+                                border: `1px solid ${colors.border}`,
+                                boxShadow: 'var(--shadow-lg)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                overflow: 'hidden',
+                                animation: 'fadeIn 0.25s ease-out'
+                            }}>
+                                {/* CHAT HEADER */}
+                                <div style={{
+                                    background: 'var(--gradient-primary)',
+                                    color: '#ffffff',
+                                    padding: '16px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <span style={{ fontSize: '22px' }}>🤖</span>
+                                        <div>
+                                            <h4 style={{ fontWeight: '800', fontSize: '15px' }}>Forkful AI Assistant</h4>
+                                            <p style={{ fontSize: '11px', opacity: 0.9 }}>Online • Culinary Guide</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setAiChatOpen(false)}
+                                        style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '18px' }}
+                                    >
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </div>
+
+                                {/* MESSAGES BOX */}
+                                <div style={{ flex: 1, padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {aiMessages.map((msg, idx) => (
+                                        <div
+                                            key={idx}
+                                            style={{
+                                                alignSelf: msg.type === 'user' ? 'flex-end' : 'flex-start',
+                                                maxWidth: '85%',
+                                                backgroundColor: msg.type === 'user' ? colors.accent : colors.secondary,
+                                                color: msg.type === 'user' ? '#ffffff' : colors.text,
+                                                padding: '12px 16px',
+                                                borderRadius: msg.type === 'user' ? '16px 16px 2px 16px' : '16px 16px 16px 2px',
+                                                fontSize: '13px',
+                                                lineHeight: '1.5',
+                                                boxShadow: 'var(--shadow-sm)'
+                                            }}
+                                        >
+                                            {msg.text}
+                                        </div>
+                                    ))}
+                                    <div ref={aiEndRef} />
+                                </div>
+
+                                {/* INPUT FORM */}
+                                <div style={{ padding: '12px', borderTop: `1px solid ${colors.border}`, display: 'flex', gap: '8px' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="What are you in the mood for?"
+                                        value={userInput}
+                                        onChange={(e) => setUserInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleAiMessage()}
+                                        style={{
+                                            flex: 1,
+                                            backgroundColor: colors.secondary,
+                                            border: `1px solid ${colors.border}`,
+                                            borderRadius: '10px',
+                                            padding: '10px 14px',
+                                            color: colors.text,
+                                            fontSize: '13px',
+                                            outline: 'none'
+                                        }}
+                                    />
+                                    <button
+                                        onClick={handleAiMessage}
+                                        style={{
+                                            backgroundColor: colors.accent,
+                                            color: '#ffffff',
+                                            border: 'none',
+                                            borderRadius: '10px',
+                                            padding: '10px 16px',
+                                            cursor: 'pointer',
+                                            fontWeight: '700'
+                                        }}
+                                    >
+                                        <i className="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ForkfulApp />);
+    </script>
+</body>
+
+</html>
